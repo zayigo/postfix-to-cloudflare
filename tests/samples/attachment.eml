@@ -1,0 +1,19 @@
+From: Admin <admin@example.com>
+To: User <user@example.com>
+Subject: Test Email 4
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="boundary1234"
+Date: Sun, 24 Oct 2023 16:45:00 -0400
+
+--boundary1234
+Content-Type: text/plain; charset="UTF-8"
+
+This email contains an attachment.
+
+--boundary1234
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="test.pdf"
+
+[PDF data here]
+
+--boundary1234--

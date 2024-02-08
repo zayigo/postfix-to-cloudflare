@@ -1,0 +1,13 @@
+From: Developer <developer@example.com>
+To: Tester <tester@example.com>
+Subject: Test Email 3
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Date: Sat, 23 Oct 2023 11:20:30 -0400
+
+<html>
+<body>
+<h1>This is an HTML Email</h1>
+<p>This is a test email with <b>HTML content</b>.</p>
+</body>
+</html>
