@@ -38,8 +38,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-and-release:
-    needs: test
+  build:
+    needs: [test, changelog]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -66,8 +66,12 @@ jobs:
           if [ "${{ matrix.platform }}" == "windows" ]; then
             output_name+=".exe"
           fi
-          env GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -o "$output_dir/$output_name" ./main
+          env CGO_ENABLED=0 GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -o "$output_dir/$output_name" ./main
 
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
