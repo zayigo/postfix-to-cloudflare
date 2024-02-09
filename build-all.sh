@@ -2,7 +2,8 @@
 
 PLATFORMS=("windows" "linux")
 ARCHS=("amd64" "arm64" "386")
-OUTPUT_DIR="builds"
+OUTPUT_DIR="dist"
+VERSION=$1 # Taking version as a parameter
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -20,6 +21,6 @@ for platform in "${PLATFORMS[@]}"; do
         if [ "$platform" == "windows" ]; then
             output_name+=".exe"
         fi
-        env GOOS=$platform GOARCH=$arch GOARM=$GOARM go build -o "$OUTPUT_DIR/$output_name" ./main
+        env GOOS=$platform GOARCH=$arch GOARM=$GOARM go build -ldflags="-X 'main.Version=${VERSION}'" -o "$OUTPUT_DIR/$output_name" ./main
     done
 done

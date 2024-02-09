@@ -10,8 +10,18 @@ import (
 	"postfix_to_cf/mail"
 )
 
+var (
+	// Version will be injected at build time using -ldflags
+	Version = "development"
+)
+
 func main() {
 	cfg := config.New()
+
+	if cfg.ShowVersion {
+		fmt.Println(Version)
+		return
+	}
 
 	if !cfg.ParseOnly && (cfg.Token == "" || cfg.Endpoint == "") {
 		fmt.Fprintln(os.Stderr, "Error: Token and Endpoint are required when not in parse-only mode")
