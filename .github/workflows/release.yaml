@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.22.x'
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Test
+        run: go test -v ./tests/...
+
+  changelog:
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-release:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [windows, linux]
+        arch: [amd64, arm64, 386]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.x'
+
+      - name: Build
+        run: |
+          output_dir="dist"
+          mkdir -p "$output_dir"
+          version_tag=${GITHUB_REF#refs/tags/}
+          output_name="postfix-to-cloudflare-${{ matrix.platform }}-${{ matrix.arch }}-${version_tag}"
+          if [ "${{ matrix.arch }}" == "arm64" ] && [ "${{ matrix.platform }}" == "linux" ]; then
+            GOARM="7"
+            output_name+="-v7"
+          fi
+          if [ "${{ matrix.platform }}" == "windows" ]; then
+            output_name+=".exe"
+          fi
+          env GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -o "$output_dir/$output_name" ./main
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: dist/*
+          fail_on_unmatched_files: true
+          body: ${{ needs.changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
