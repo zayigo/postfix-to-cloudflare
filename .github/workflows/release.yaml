@@ -38,8 +38,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
+  create_release:
     needs: [test, changelog]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Draft Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          body: ${{ needs.changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_and_upload:
+    needs: [create_release]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -68,32 +81,14 @@ jobs:
           fi
           env CGO_ENABLED=0 GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -o "$output_dir/$output_name" ./main
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload to Release
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: build-artifacts
-          path: dist/*
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          files: ./*
-          fail_on_unmatched_files: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ github.workspace }}/dist/*
+          tag: ${{ github.ref }}
+          overwrite: true
           body: ${{ needs.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cleanup Artifacts
-        uses: geekyeggo/delete-artifact@v4
-        with:
-          name: build-artifacts
