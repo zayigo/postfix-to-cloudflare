@@ -79,7 +79,7 @@ jobs:
           if [ "${{ matrix.platform }}" == "windows" ]; then
             output_name+=".exe"
           fi
-          env CGO_ENABLED=0 GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -o "$output_dir/$output_name" ./main
+          env CGO_ENABLED=0 GOOS=${{ matrix.platform }} GOARCH=${{ matrix.arch }} GOARM=$GOARM go build -ldflags="-X 'main.Version=${version_tag}'" -o "$output_dir/$output_name" ./main
 
       - name: Upload to Release
         uses: svenstaro/upload-release-action@v2
